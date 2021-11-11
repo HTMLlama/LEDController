@@ -7,6 +7,7 @@
 #define NUM_LEDS 300
 #define LED_PIN 5
 #define COLOR_ORDER RGB
+#define BGT_PIN A3
 int bgt = 20;
 CRGB leds[NUM_LEDS];
 int hue = 100;
@@ -56,8 +57,9 @@ void readEncoderBtn() {
 }
 
 void displayLights() {
-  switch (fx)
-  {
+  bgt = map(analogRead(BGT_PIN), 1023, 0, 0, 255);
+  FastLED.setBrightness(bgt);
+  switch (fx) {
   case PCMR:
       fxName = "PCMR";
       fill_rainbow( leds, NUM_LEDS, hue, 2);
@@ -155,6 +157,7 @@ void checkPosition() {
 
 void setup() {
   pinMode(ENCODER_SW, INPUT_PULLUP);
+  pinMode(BGT_PIN, INPUT);
 
   FastLED.addLeds<WS2811, LED_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(bgt);
