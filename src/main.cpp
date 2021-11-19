@@ -1,13 +1,13 @@
 #include <Arduino.h>
+#include <Wire.h>
 #include <FastLED.h>
-#include <Adafruit_I2CDevice.h>
 #include <RotaryEncoder.h>
 #include <LiquidCrystal.h>
 
 #define NUM_LEDS 300
 #define LED_PIN 5
 #define COLOR_ORDER RGB
-#define BGT_PIN A3
+#define BGT_PIN A4
 int bgt = 20;
 CRGB leds[NUM_LEDS];
 int hue = 100;
@@ -177,7 +177,7 @@ void loop() {
   hue = readEncoder(hue, true);
   readEncoderBtn();
   // displayLights();
-  displayLcd();
+  // displayLcd();
 
   EVERY_N_MILLISECONDS( 20 ) { displayLights(); }
 
