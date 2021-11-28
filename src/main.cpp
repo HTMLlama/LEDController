@@ -2,7 +2,6 @@
 #include <Wire.h>
 #include <FastLED.h>
 #include <RotaryEncoder.h>
-#include <LiquidCrystal.h>
 
 #define NUM_LEDS 300
 #define LED_PIN 5
@@ -11,6 +10,7 @@
 int bgt = 20;
 CRGB leds[NUM_LEDS];
 int hue = 100;
+int hue2 = 200;
 
 #define SOLID 0
 #define PCMR 1
@@ -18,31 +18,40 @@ int hue = 100;
 #define XMAS 3
 #define MURICA 4
 #define PRIDE 5
+#define DUAL 6
 
-#define FX_TOTAL 6
-int fx = SOLID;
-String fxName = "Solid";
+#define FX_TOTAL 7
+int fx = DUAL;
 
 #define ENCODER_SW 4
 #define ENCODER_DT 3
 #define ENCODER_CLK 2
 RotaryEncoder *encoder = nullptr;
 
-const int RS = 13, EN = 12, D4 = 11, D5 = 10, D6 = 9, D7 = 8;
-LiquidCrystal lcd(RS,EN,D4,D5,D6,D7); 
+#define HSV_1_SW 9
+#define HSV_2_SW 10
+#define HSV_S_SW 11
+#define HSV_V_SW 12
 
 // -----------------------------------------------------
 
-int readEncoder(int item, boolean isColor) {
-  int newItem = item + (int)encoder->getDirection();
-  if (isColor) {
-    if (newItem > 255) {
-      newItem = 0;
-    } else if (newItem < 0) {
-      newItem = 255;
-    }
+int roller(int item) {
+  if (item > 255) {
+    item = 0;
+  } else if (item < 0) {
+    item = 255;
   }
-  return newItem;
+  return item;
+}
+
+void readEncoder() {
+  int direction = (int)encoder->getDirection();
+  if (digitalRead(HSV_1_SW) == LOW) {
+    hue = roller(hue + direction);
+  }
+  if (digitalRead(HSV_2_SW) == LOW) {
+    hue2 = roller(hue2 + direction);
+  }
 }
 
 void readEncoderBtn() {
@@ -51,7 +60,7 @@ void readEncoderBtn() {
     if (fx >= FX_TOTAL) {
       fx = 0;
     }
-    delay(200);
+    delay(500);
   }
   
 }
@@ -61,7 +70,6 @@ void displayLights() {
   FastLED.setBrightness(bgt);
   switch (fx) {
   case PCMR:
-      fxName = "PCMR";
       fill_rainbow( leds, NUM_LEDS, hue, 2);
       hue++;
       if (hue > 255) {
@@ -71,7 +79,6 @@ void displayLights() {
     break;
 
   case FALL_HOLIDAY:
-    fxName = "Fall";
     for (size_t i = 0; i < NUM_LEDS; i+=16) {
       for (size_t n = 0; n < 8; n++) {
         int indexA = i+n;
@@ -89,7 +96,6 @@ void displayLights() {
     break;
   
   case XMAS:
-    fxName = "Xmas";
     for (size_t i = 0; i < NUM_LEDS; i+=16) {
       for (size_t n = 0; n < 8; n++) {
         int indexA = i+n;
@@ -105,7 +111,6 @@ void displayLights() {
     break;
   
   case MURICA:
-    fxName = "Murica!";
     for (size_t i = 0; i < NUM_LEDS; i+=27) {
       for (size_t n = 0; n < 9; n++) {
         int indexA = i+n;
@@ -125,28 +130,33 @@ void displayLights() {
     break;
 
   case PRIDE:
-  fxName = "Pride";
     fill_rainbow( leds, NUM_LEDS, hue, 2);
+    break;
+
+  case DUAL:
+    for (size_t i = 0; i < NUM_LEDS; i+=16) {
+      for (size_t n = 0; n < 8; n++) {
+        int indexA = i+n;
+        int indexB = i+n+8;
+        if (indexA < NUM_LEDS) {
+          leds[indexA] = CRGB().setHSV(hue, 200, 200);
+        }
+        if (indexB < NUM_LEDS) {
+          leds[indexB] = CRGB().setHSV(hue2, 200, 200);;
+        }
+      } 
+    }
     break;
   
   default:
 
-  fxName = "Solid";
     for(int i = 0; i < NUM_LEDS; i++) {
       leds[i] = CRGB().setHSV(hue, 255, 255);
     }
     break;
   }
-  FastLED.show();
-}
 
-void displayLcd() {
-  lcd.home();
-  lcd.clear();
-  lcd.print(fxName);
-  lcd.setCursor(0, 2);
-  lcd.print("hue: ");
-  lcd.print(hue);
+  FastLED.show();
 }
 
 // -----------------------------------------------------
@@ -156,6 +166,10 @@ void checkPosition() {
 }
 
 void setup() {
+  pinMode(HSV_1_SW ,INPUT_PULLUP);
+  pinMode(HSV_2_SW ,INPUT_PULLUP);
+  pinMode(HSV_S_SW ,INPUT_PULLUP);
+  pinMode(HSV_V_SW ,INPUT_PULLUP);
   pinMode(ENCODER_SW, INPUT_PULLUP);
   pinMode(BGT_PIN, INPUT);
 
@@ -168,19 +182,18 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(ENCODER_DT), checkPosition, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENCODER_CLK), checkPosition, CHANGE);
 
-  lcd.begin(16, 2);
-
   // Serial.begin(9600);
 }
 
 void loop() {
-  hue = readEncoder(hue, true);
+  readEncoder();
   readEncoderBtn();
-  // displayLights();
-  // displayLcd();
 
   EVERY_N_MILLISECONDS( 20 ) { displayLights(); }
 
-  // Serial.println(hue);
-  // delay(100);
+  // Serial.print(digitalRead(HSV_1_SW));
+  // Serial.print(digitalRead(HSV_2_SW));
+  // Serial.print(hue);
+  // Serial.print(hue2);
+  // Serial.println(fx);
 }
