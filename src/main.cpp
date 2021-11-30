@@ -9,8 +9,6 @@
 #define BGT_PIN A4
 int bgt = 20;
 CRGB leds[NUM_LEDS];
-int hue = 100;
-int hue2 = 200;
 
 #define SOLID 0
 #define PCMR 1
@@ -32,6 +30,12 @@ RotaryEncoder *encoder = nullptr;
 #define HSV_2_SW 10
 #define HSV_S_SW 11
 #define HSV_V_SW 12
+int hue = 255;
+int hue2 = 100;
+int sat = 255;
+int sat2 = 255;
+int val = 255;
+int val2 = 255;
 
 // -----------------------------------------------------
 
@@ -46,12 +50,38 @@ int roller(int item) {
 
 void readEncoder() {
   int direction = (int)encoder->getDirection();
-  if (digitalRead(HSV_1_SW) == LOW) {
-    hue = roller(hue + direction);
+
+
+  if(digitalRead(HSV_S_SW) == LOW) {
+
+    if (digitalRead(HSV_1_SW) == LOW) {
+      sat = roller(sat + direction);
+    }
+    if (digitalRead(HSV_2_SW) == LOW) {
+      sat2 = roller(sat2 + direction);
+    }
+
+  } else if (digitalRead(HSV_V_SW) == LOW) {
+
+    if (digitalRead(HSV_1_SW) == LOW) {
+      val = roller(val + direction);
+    }
+    if (digitalRead(HSV_2_SW) == LOW) {
+      val2 = roller(val2 + direction);
+    }
+
+  } else {
+
+    if (digitalRead(HSV_1_SW) == LOW) {
+      hue = roller(hue + direction);
+    }
+    if (digitalRead(HSV_2_SW) == LOW) {
+      hue2 = roller(hue2 + direction);
+    }
+
   }
-  if (digitalRead(HSV_2_SW) == LOW) {
-    hue2 = roller(hue2 + direction);
-  }
+  
+  
 }
 
 void readEncoderBtn() {
@@ -139,10 +169,10 @@ void displayLights() {
         int indexA = i+n;
         int indexB = i+n+8;
         if (indexA < NUM_LEDS) {
-          leds[indexA] = CRGB().setHSV(hue, 200, 200);
+          leds[indexA] = CRGB().setHSV(hue, sat, val);
         }
         if (indexB < NUM_LEDS) {
-          leds[indexB] = CRGB().setHSV(hue2, 200, 200);;
+          leds[indexB] = CRGB().setHSV(hue2, sat2, val2);;
         }
       } 
     }
@@ -151,7 +181,7 @@ void displayLights() {
   default:
 
     for(int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = CRGB().setHSV(hue, 255, 255);
+      leds[i] = CRGB().setHSV(hue, sat, val);
     }
     break;
   }
