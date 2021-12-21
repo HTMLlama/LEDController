@@ -3,7 +3,7 @@
 #include <FastLED.h>
 #include <RotaryEncoder.h>
 
-#define NUM_LEDS 300
+#define NUM_LEDS 900
 #define LED_PIN 5
 #define COLOR_ORDER RGB
 #define BGT_PIN A4
@@ -17,13 +17,15 @@ CRGB leds[NUM_LEDS];
 #define LARGE 4
 #define XL 5
 #define XXL 6
-#define MURICA 7
+#define COLOR_FADE 7
 #define PRIDE 8
 #define XMAS 9
 #define SOLID2 10
-#define FX_TOTAL 11
+#define MURICA 11
+#define FX_TOTAL 12
 int fx = SMALL;
 bool isXmasSet = false;
+int fadeHue = 100;
 
 #define ENCODER_SW 4
 #define ENCODER_DT 3
@@ -190,6 +192,12 @@ void displayLights() {
         leds[i] = CRGB().setHSV(hue2, sat2, val2);
       }
       break;
+
+    case COLOR_FADE:
+      for(int i = 0; i < NUM_LEDS; i++) {
+        leds[i] = CRGB().setHSV(fadeHue, 250, 250);
+      }
+      break;
     
     default:
 
@@ -234,5 +242,6 @@ void loop() {
   readEncoder();
   readEncoderBtn();
 
-  EVERY_N_MILLISECONDS( 20 ) { displayLights(); }
+  EVERY_N_MILLISECONDS(20) { displayLights(); }
+  EVERY_N_MINUTES(2) { fadeHue = roller(fadeHue + 1); }
 }
